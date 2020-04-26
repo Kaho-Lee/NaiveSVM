@@ -22,8 +22,8 @@ classdef svmOpt
             obj.size = size_X(1);
             
             obj.kernel = @(x1, x2) x1 * (x2.');
-            var = 1;
-            obj.kernel = @(x1, x2) exp(-norm(x1-x2)/(2*var));
+            %var = 1;
+            %obj.kernel = @(x1, x2) exp(-norm(x1-x2)/(2*var));
             
             H = setH(obj);
             obj.H = H;
@@ -117,8 +117,7 @@ classdef svmOpt
             logits(logits > 500) = 500;
             value = 1/(1+exp(-logits));
         end
-        
-        
+               
         function [SVs, isSV] = assignSupportVecotor(obj)
             SVs = [];
             isSV = zeros(obj.size, 1);
