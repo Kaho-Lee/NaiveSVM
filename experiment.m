@@ -6,6 +6,10 @@ inds = ~strcmp(species,'setosa');
 X = meas(inds,3:4);
 y_cat = species(inds);
 
+for i=1:length(X(1,:))                    
+    X(:,i) = (X(:,i) - mean(X(:,i)))/std(X(:,i));
+end
+
 % X = X(1:50,:);
 % y_cat = y_cat(1:50,:);
 
@@ -81,6 +85,10 @@ data2 = [r2.*cos(t2), r2.*sin(t2)]; % points
 data3 = [data1;data2];
 theclass = ones(200,1);
 theclass(1:100) = -1;
+
+for i=1:length(data3(1,:))                    
+    data3(:,i) = (data3(:,i) - mean(data3(:,i)))/std(data3(:,i));
+end
 
 s_nonlin = svmOpt(data3, theclass, 'RBF', C, 0, optimizer)
 

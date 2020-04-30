@@ -16,6 +16,7 @@ classdef svmOpt
         outlierFraction; %outlier fraction of one-class svm.
         optimizer; % Trust-region style Quasi-Newton methods(SR1)
         %/Conjugate Gradient Methods
+        e; %elaspe time of training
     end
     
     methods
@@ -49,16 +50,18 @@ classdef svmOpt
            
             obj.L = QudraticPenalty(obj);
             
-            obj.A = fit(obj);
+            [obj.A, obj.e] = fit(obj);
             [obj.SVs, obj.isSV] = assignSupportVecotor(obj);
             obj.b = setBias(obj);
         end
         
-        function aMin = fit(obj)
+        function [ aMin, e] = fit(obj)
+            t = cputime;           
             mu0 = 1;
             a0 = obj.A;
             [aMin, fMin_QP, nIter_QP, info_QP] = PenaltyAugmented(obj.L, mu0, a0, 'QuadraticPenalty', obj.optimizer);                       
-
+            e = cputime-t;
+            disp('finish training')
 % Interior method: wait for fixing, buggy now.
 %             lambda0 = zeros(2*length(obj.A), 1) + 10;
 %             lambda0 = [-1/(-obj.A) -1/(obj.A-obj.C) ].';
@@ -70,7 +73,7 @@ classdef svmOpt
 %             opts.alpha = 0.01;
 %             opts.beta = 0.5;
 %             [aMin, fMin, t, nIter, infoPD] = interiorPoint_PrimalDual(obj.L.F, obj.L.ineqConstraint, obj.L.eqConstraint, obj.A, lambda0, nu0, mu, tol, tolFeas, maxIter, opts)
-            disp('finish training')
+            
             
         end
         
@@ -112,7 +115,6 @@ classdef svmOpt
                 df = str2func(str);
                 L.df = @(a, mu) df(a, mu, obj.H, obj.y, obj.C);
             elseif obj.outlierFraction > 0
-                disp('2 Quadratic penalty')
                 L.f = @(a, mu) 0.5*sum((a * a.').*obj.H, 'all') ...
                     + (mu/2)*((sum(a,'all')-1).^2 + sum(max(0, 0-a).^2, 'all') ...
                     + sum(max(0, a-obj.C).^2, 'all') );
@@ -159,12 +161,6 @@ classdef svmOpt
                     H(i,j) = obj.y(i)* obj.y(j)* obj.kernel(obj.X(i,:), obj.X(j,:));  
                 end
             end            
-        end
-        
-        function value = sign(obj, logits)
-            logits(logits < -500) = -500;
-            logits(logits > 500) = 500;
-            value = 1/(1+exp(-logits));
         end
                
         function [SVs, isSV] = assignSupportVecotor(obj)

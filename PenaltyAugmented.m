@@ -54,26 +54,7 @@ function [xMin, fMin, nIter, info] = PenaltyAugmented(Q, mu0,x0, type, optimizer
                         [cur_x, cur_f, nIterCG_FR_LS, infoCG_FR_LS] = nonlinearConjugateGradient(cur_Q, lsFun, 'FR', alpha0, x0, tol, maxIter,tau);
                 end
                 mu_k = mu_k*2;
-            case 'AugmentedLagrangian'
-                cur_Q.f = @(x) Q.f(x, mu_k, v_k);
-                cur_Q.df = @(x) Q.df(x, mu_k, v_k);
-                %cur_Q.d2f = @(x) Q.d2f(x, mu_k, v_k);
-                %lsFun = @(x_k, p_k, alpha0) lineSearch(cur_Q, x_k, p_k, alpha_max, lsOptsSteep);
-                %[xSteep, fSteep, nIterSteep, infoSteep] = descentLineSearch(cur_Q, 'bfgs', lsFun, alpha0, x_k, tol, maxIter, tau);
-                
-                eta = 0.1;  % Step acceptance relative progress threshold
-                Delta = 1; % Trust region radius
-                debug = 0; % Debugging parameter will switch on step by step visualisation of quadratic model and various step options
-
-                % Minimisation with 2d subspace and dogleg trust region methods
-                
-                Fsr1 = cur_Q;
-                [cur_x, fSteep, nIterSteep, infoSteep] = trustRegion(Fsr1, x_k, @solverCM2dSubspaceExt, Delta, eta, tol, maxIter, tau, debug);
-                
-                tau = norm(c_1(x_k));
-                v_k = v_k - mu_k*c_1(xSteep);
-                mu_k = mu_k*1.5;
-                info.vks = [info.vks v_k];
+            
         end
         
         if norm(cur_x-x_k, 2) <= epsilon
