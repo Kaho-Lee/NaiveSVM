@@ -3,7 +3,7 @@ function [xMin, fMin, nIter, info] = PenaltyAugmented(Q, mu0,x0, type, optimizer
     alpha0 = 1;
     maxIter = 100;
     alpha_max = alpha0;
-    tol = 1e-6;
+    tol = 1e-8;
     
     tau = 1e-6;
     epsilon = 1e-6;
@@ -40,20 +40,22 @@ function [xMin, fMin, nIter, info] = PenaltyAugmented(Q, mu0,x0, type, optimizer
                         eta = 0.1;  % Step acceptance relative progress threshold
                         Delta = 1; % Trust region radius
                         debug = 0; % Debugging parameter will switch on step by step visualisation of quadratic model and various step options
-                                            
+                        
+                        %lsFun = @(x_k, p_k, alpha0) lineSearch(cur_Q, x_k, p_k, alpha_max, lsOptsSteep);
+                        $[cur_x, cur_f, nIterSteep, infoSteep] = descentLineSearch(cur_Q, 'steepest', lsFun, alpha0, x_k, tol, maxIter, tau);
                         % Minimisation with 2d subspace and dogleg trust region methods
-                        Fsr1 = cur_Q;
-                        [cur_x, cur_f, nIterSteep, infoSteep] = trustRegion(Fsr1, x_k, @solverCM2dSubspaceExt, Delta, eta, tol, maxIter, tau, debug);
+                        %Fsr1 = cur_Q;
+                        %[cur_x, cur_f, nIterSteep, infoSteep] = trustRegion(Fsr1, x_k, @solverCM2dSubspaceExt, Delta, eta, tol, maxIter, tau, debug);
                     case 'ConjugateGrad'
                         
                         maxIter = 100;
 
                         lsOptsCG_LS.c1 = 1e-4;
                         lsOptsCG_LS.c2 = 0.1;
-                        lsFun = @(x_k, p_k, alpha0) lineSearch(cur_Q, x_k, p_k, alpha_max, lsOptsCG_LS);
+                        lsFun = @(x_k, p_k, alpha0) lineSearch(cur_Q, x_k, p_k, alpha0, lsOptsCG_LS);
                         [cur_x, cur_f, nIterCG_FR_LS, infoCG_FR_LS] = nonlinearConjugateGradient(cur_Q, lsFun, 'FR', alpha0, x0, tol, maxIter,tau);
                 end
-                mu_k = mu_k*2;
+                mu_k = mu_k*1.5;
             case 'AugmentedLagrangian'
                 cur_Q.f = @(x) Q.f(x, mu_k, v_k);
                 cur_Q.df = @(x) Q.df(x, mu_k, v_k);

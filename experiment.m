@@ -15,8 +15,10 @@ y(y == 1) = -1;
 y(y == 2) = 1;
 C=1000;
 
+optimizer = 'SR1';
+%optimizer = 'ConjugateGrad';
 
-s = svmOpt(X, y, C)
+s = svmOpt(X, y, 'linear', C, 0, optimizer)
 
 a = zeros( 100, 1);
 mu = 1;
@@ -47,9 +49,9 @@ X_nonlin = meas(:,1:2);
 y_nonlin = ones(size(X_nonlin,1),1);
 C=10000;
 for i=1:length(X_nonlin(1,:))                    
-    X_nonlin(:,i) = (X_nonlin(:,i) - mean(X_nonlin(:,i)))/sqrt(var(X_nonlin(:,i)));
+    X_nonlin(:,i) = (X_nonlin(:,i) - mean(X_nonlin(:,i)))/std(X_nonlin(:,i));
 end
-s_outlier = svmOpt(X_nonlin, y_nonlin, C, 0.05)
+s_outlier = svmOpt(X_nonlin, y_nonlin, 'RBF', C, 0.05, optimizer)
 
 n = 300;
 x1 = linspace(min(X_nonlin(:,1))-0.5, max(X_nonlin(:,1))+0.5, n+1);
@@ -80,7 +82,7 @@ data3 = [data1;data2];
 theclass = ones(200,1);
 theclass(1:100) = -1;
 
-s_nonlin = svmOpt(data3, theclass, C)
+s_nonlin = svmOpt(data3, theclass, 'RBF', C, 0, optimizer)
 
 n = 300;
 x1 = linspace(min(data3(:,1))-0.5, max(data3(:,1))+0.5, n+1);

@@ -74,8 +74,9 @@ classdef svmOpt
             
         end
         
-        function logits = predict(obj, X)
-            logits = [];            
+        function pred = predict(obj, X)
+            logits = [];
+            
             if obj.outlierFraction == 0                 
                 for s=1:length(X)
                     tot_sum = 0;
@@ -93,6 +94,7 @@ classdef svmOpt
                     logits = [logits, tot_sum-obj.b];
                 end
             end
+            pred = logits;
         end
         
         
