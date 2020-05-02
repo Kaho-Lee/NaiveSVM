@@ -42,8 +42,10 @@ function [xMin, fMin, nIter, info] = PenaltyAugmented(Q, mu0,x0, type, optimizer
                         debug = 0; % Debugging parameter will switch on step by step visualisation of quadratic model and various step options
                                             
                         % Minimisation with 2d subspace and dogleg trust region methods
-                        Fsr1 = cur_Q;
-                        [cur_x, cur_f, nIterSteep, infoSteep] = trustRegion(Fsr1, x_k, @solverCM2dSubspaceExt, Delta, eta, tol, maxIter, tau, debug);
+                        lsFun = @(x_k, p_k, alpha0) lineSearch(cur_Q, x_k, p_k, alpha_max, lsOptsSteep);
+                        [cur_x, cur_f, nIterSteep, infoSteep] = descentLineSearch(cur_Q, 'bfgs', lsFun, alpha0, x_k, tol, maxIter, tau);
+%                         Fsr1 = cur_Q;
+%                         [cur_x, cur_f, nIterSteep, infoSteep] = trustRegion(Fsr1, x_k, @solverCM2dSubspaceExt, Delta, eta, tol, maxIter, tau, debug);
                     case 'ConjugateGrad'                        
                         lsOptsCG_LS.c1 = 1e-4;
                         lsOptsCG_LS.c2 = 0.1;
@@ -58,7 +60,9 @@ function [xMin, fMin, nIter, info] = PenaltyAugmented(Q, mu0,x0, type, optimizer
         end
              
         x_k = cur_x;
-        mu_k = mu_k*1.5;           
+        if mu_k < 100   
+            mu_k = mu_k*1.5;
+        end
         
         info.mus = [info.mus, mu_k];
         info.xs = [info.xs, x_k];

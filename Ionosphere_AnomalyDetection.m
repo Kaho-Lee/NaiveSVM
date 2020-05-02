@@ -1,3 +1,4 @@
+clear all
 rng(1)
 filename = 'data/ionosphere.data';
 
@@ -27,10 +28,16 @@ negative_y = data_y(G_index, :);
 positive_x = data_x(B_index, :);
 positive_y = data_y(B_index, :);
 
+selectPositiveData = randperm(length(B_index), 15)
+selectedIndx = B_index(selectPositiveData)'
+
 train_x = negative_x(1:ceil(length(G_index)/2), :);
 train_y = negative_y(1:ceil(length(G_index)/2), :);
-test_x = [negative_x(ceil(length(G_index)/2)+1:length(G_index), :); positive_x(:,:)];
-test_y = [negative_y(ceil(length(G_index)/2)+1:length(G_index), :); positive_y(:,:)];
+% test_x = [negative_x(ceil(length(G_index)/2)+1:length(G_index), :); positive_x(:,:)];
+% test_y = [negative_y(ceil(length(G_index)/2)+1:length(G_index), :); positive_y(:,:)];
+
+test_x = [negative_x(ceil(length(G_index)/2)+1:length(G_index), :); positive_x(selectPositiveData,:)];
+test_y = [negative_y(ceil(length(G_index)/2)+1:length(G_index), :); positive_y(selectPositiveData,:)];
 
 
 % for i=1:length(train_x(1,:))
@@ -51,15 +58,15 @@ test_y = [negative_y(ceil(length(G_index)/2)+1:length(G_index), :); positive_y(:
 
 C=1000;
 optimizer = 'ConjugateGrad';
-s_outlier = SVM_Opt_model(train_x, train_y,  'RBF', C, 0.5, optimizer)
-logits = s_outlier.predict(test_x);
+s_class_PR = SVM_Opt_model(train_x, train_y,  'RBF', C, 0.5, optimizer)
+logits = s_class_PR.predict(test_x);
 [TPR_lst_PR, FPR_lst_PR] = GenRoc(logits, test_y);
 area = AUC(TPR_lst_PR, FPR_lst_PR);
 txt1 = sprintf('PR: AUC=%.4f', area);
 
 optimizer = 'SR1';
-s_outlier = SVM_Opt_model(train_x, train_y,  'RBF', C, 0.5, optimizer)
-logits = s_outlier.predict(test_x);
+s_class_SR1 = SVM_Opt_model(train_x, train_y,  'RBF', C, 0.5, optimizer)
+logits = s_class_SR1.predict(test_x);
 [TPR_lst_SR1, FPR_lst_SR1] = GenRoc(logits, test_y);
 area = AUC(TPR_lst_SR1, FPR_lst_SR1);
 txt2 = sprintf('SR1: AUC=%.4f', area);
@@ -72,30 +79,36 @@ legend(txt1,txt2, 'baseline')
 title('ROC Curve of Anomaly Detection');
 hold off
 
-figure, 
-subplot(1,2,1);
-plot(s_class_SR1.QP_grad, '.-', 'linewidth', 2, 'MarkerSize',12)
-txt = sprintf('SR1: ||\\nabla Q||_{2}');
-title(txt)
-subplot(1,2,2);
-plot(s_class_PR.QP_grad, '.-', 'linewidth', 2, 'MarkerSize',12)
-txt = sprintf('PR: ||\\nabla Q||_{2}');
-title(txt)
+% figure, 
+% subplot(1,2,1);
+% plot(s_class_SR1.QP_grad, '.-', 'linewidth', 2, 'MarkerSize',12)
+% txt = sprintf('SR1: ||\\nabla Q||_{2}');
+% title(txt)
+% subplot(1,2,2);
+% plot(s_class_PR.QP_grad, '.-', 'linewidth', 2, 'MarkerSize',12)
+% txt = sprintf('PR: ||\\nabla Q||_{2}');
+% title(txt)
 
 
-figure, plot(s_class_SR1.QP_qCon, '.-', 'linewidth', 2, 'MarkerSize',12)
+figure, plot(s_class_SR1.QP_grad, 'o-', 'linewidth', 2, 'MarkerSize',7)
+hold on
+plot(s_class_PR.QP_grad, '*-', 'linewidth', 2, 'MarkerSize',4)
+legend('SR1: ||\\nabla Q||_{2}', 'PR: ||\\nabla Q||_{2}')
+hold off
+
+
+figure, plot(s_class_SR1.QP_qCon, 'o-', 'linewidth', 2, 'MarkerSize',7)
 hold on
 ylim([0 inf])
-plot(s_class_PR.QP_qCon, '.-', 'linewidth', 2, 'MarkerSize',12)
-
+plot(s_class_PR.QP_qCon, '*-', 'linewidth', 2, 'MarkerSize',4)
 txt = sprintf('Convergence Analysis: ||x_{k} - x^{*}||_{2}/||x_{k-1} - x^{*}||_{2}');
 title(txt)
 xlabel('Iteration k')
 legend('SR1', 'PR')
 hold off
 
-% Y = tsne(data_x);
-% figure, gscatter(Y(:,1),Y(:,2),data_y_cat)
+Y = tsne(test_x);
+figure, gscatter(Y(:,1),Y(:,2),test_y)
 
 
 function [TPR, FPR] = GetStat(prob, mask, threshold, target)

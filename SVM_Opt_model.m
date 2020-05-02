@@ -14,7 +14,7 @@ classdef SVM_Opt_model
         kernel;
         numclass;
         outlierFraction; %outlier fraction of one-class svm.
-        optimizer; % Trust-region style Quasi-Newton methods(SR1)
+        optimizer; % Quasi-Newton methods(BFGS)
         %/Conjugate Gradient Methods
         e; %elaspe time of training
         fMin;
