@@ -64,7 +64,7 @@ infoPD.surgap = [];
 infoPD.s = [];
 
 % Define residual function
-r_dual = @(t, x, l, n) F.df(x) + (ineqConstraint.df(x))'*l + eqConstraint.A*n;
+r_dual = @(t, x, l, n) F.df(x) + (ineqConstraint.df(x))'*l + eqConstraint.A'*n;
 r_cent = @(t, x, l, n) -diag(l)*ineqConstraint.f(x) - diag(ineqConstraint.f(x))*(ones(m, 1)/t);
 r_prim = @(t, x, l, n) eqConstraint.A*x - eqConstraint.b;
 res = @(t, x, l, n) [r_dual(t, x, l, n); r_cent(t, x, l, n); r_prim(t, x, l, n)];
@@ -73,6 +73,7 @@ res = @(t, x, l, n) [r_dual(t, x, l, n); r_cent(t, x, l, n); r_prim(t, x, l, n)]
 eta = - (ineqConstraint.f(x0))'*lambda0;
 t = mu*m/eta;
 % Loop 
+disp('res_k size')
 [size(r_dual(t, x_k, l_k, n_k)) size(r_cent(t, x_k, l_k, n_k)) size(r_prim(t, x_k, l_k, n_k))]
 while (~stopCond && nIter < maxIter)
     disp(['Iteration ' int2str(nIter)]);
@@ -92,7 +93,11 @@ while (~stopCond && nIter < maxIter)
     size_check = [size(F.d2f(x_k) + hessIneqConstraints_x_k),  size(ineqConstraint.df(x_k)')    , size(eqConstraint.A'); ...
                size(-diag(l_k)*ineqConstraint.df(x_k))       , size(-diag(ineqConstraint.f(x_k))), size(zeros(m, nEq))  ; ...
                size(eqConstraint.A  )                        ,  size(zeros(nEq, m))              , size(zeros(nEq, nEq))];
-      
+    
+    temp = inv([F.d2f(x_k) + hessIneqConstraints_x_k,  ineqConstraint.df(x_k)'    , eqConstraint.A'; ...
+               -diag(l_k)*ineqConstraint.df(x_k)       , -diag(ineqConstraint.f(x_k)), zeros(m, nEq)  ; ...
+               eqConstraint.A                          ,  zeros(nEq, m)              , zeros(nEq, nEq)]);
+    %jiahao
     deltaY = -[F.d2f(x_k) + hessIneqConstraints_x_k,  ineqConstraint.df(x_k)'    , eqConstraint.A'; ...
                -diag(l_k)*ineqConstraint.df(x_k)       , -diag(ineqConstraint.f(x_k)), zeros(m, nEq)  ; ...
                eqConstraint.A                          ,  zeros(nEq, m)              , zeros(nEq, nEq)]\res_k;

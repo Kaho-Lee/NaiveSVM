@@ -145,7 +145,7 @@ classdef SVM_Opt_model
                 
                 str = '@(a, mu, H, C)[';
                 for i=1:obj.size
-                    df_i = sprintf("0.5*(sum(a.'.*H(%d,:), 'all') + a.'*H(:,%d)) + mu*((sum(a,'all')-1)+min(0, a(%d))+max(0, a(%d)-C));",i,i,i,i);
+                    df_i = sprintf("0.5*(sum(a.'.*H(%d,:), 'all') ) + mu*((sum(a,'all')-1)+min(0, a(%d))+max(0, a(%d)-C));",i,i,i);
                     str = strcat(str,df_i);
                 end
                 str = strcat(str,"];");

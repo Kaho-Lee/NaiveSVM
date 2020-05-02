@@ -62,20 +62,20 @@ while (~stopCond && nIter <= maxIter)
             df_k1 = F.df(x_k);
             beta_k1_PR = (df_k1'*(df_k1 - df_k))/norm(df_k)^2;
             beta_k1_FR = (df_k1'*df_k1)/(df_k'*df_k);
-            %beta_k1 = beta_k1_PR;
+%             beta_k1 = beta_k1_PR;
             
             cos_theta = abs(df_k'*df_k1)/norm(df_k)^2;
             if cos_theta > 0.1
                 beta_k1 = 0;
             else
                 beta_k1 = beta_k1_PR;
-%                 if beta_k1_PR < -beta_k1_FR
-%                     beta_k1 = -beta_k1_FR;
-%                 elseif abs(beta_k1_PR) <= beta_k1_FR
-%                     beta_k1 = beta_k1_PR;
-%                 else
-%                     beta_k1 = beta_k1_FR;
-%                 end
+                if beta_k1_PR < -beta_k1_FR
+                    beta_k1 = -beta_k1_FR;
+                elseif abs(beta_k1_PR) <= beta_k1_FR
+                    beta_k1 = beta_k1_PR;
+                else
+                    beta_k1 = beta_k1_FR;
+                end
                     
             end
             

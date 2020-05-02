@@ -27,11 +27,16 @@ negative_y = data_y(G_index, :);
 positive_x = data_x(B_index, :);
 positive_y = data_y(B_index, :);
 
-train_x = negative_x(1:ceil(length(G_index)/2), :);
-train_y = negative_y(1:ceil(length(G_index)/2), :);
-test_x = [negative_x(ceil(length(G_index)/2)+1:length(G_index), :); positive_x(:,:)];
-test_y = [negative_y(ceil(length(G_index)/2)+1:length(G_index), :); positive_y(:,:)];
+% train_x = [negative_x(1:ceil(length(G_index)/2), :); positive_x(1:ceil(length(B_index)/2), :)];
+% train_y = [negative_y(1:ceil(length(G_index)/2), :); positive_y(1:ceil(length(B_index)/2), :)];
 
+train_x = [negative_x(1:ceil(length(G_index)/2), :); positive_x(1:5, :)];
+train_y = [negative_y(1:ceil(length(G_index)/2)); positive_y(1:5)];
+% test_x = [negative_x(ceil(length(G_index)/2)+1:length(G_index), :); positive_x(ceil(length(B_index)/2)+1:length(B_index), :)];
+% test_y = [negative_y(ceil(length(G_index)/2)+1:length(G_index), :); positive_y(ceil(length(B_index)/2)+1:length(B_index), :)];
+
+test_x = [negative_x(ceil(length(G_index)/2)+1:length(G_index), :); positive_x(6:10, :)];
+test_y = [negative_y(ceil(length(G_index)/2)+1:length(G_index)); positive_y(6:10)];
 
 % for i=1:length(train_x(1,:))
 %     if std(train_x(:,i)) >0
@@ -49,27 +54,30 @@ test_y = [negative_y(ceil(length(G_index)/2)+1:length(G_index), :); positive_y(:
 %     end
 % end
 
-C=1000;
+C=10;
 optimizer = 'ConjugateGrad';
-s_outlier = SVM_Opt_model(train_x, train_y,  'RBF', C, 0.5, optimizer)
-logits = s_outlier.predict(test_x);
+s_class_PR = SVM_Opt_model(train_x, train_y,  'RBF', C, 0, optimizer)
+logits = s_class_PR.predict(test_x);
 [TPR_lst_PR, FPR_lst_PR] = GenRoc(logits, test_y);
 area = AUC(TPR_lst_PR, FPR_lst_PR);
 txt1 = sprintf('PR: AUC=%.4f', area);
 
 optimizer = 'SR1';
-s_outlier = SVM_Opt_model(train_x, train_y,  'RBF', C, 0.5, optimizer)
-logits = s_outlier.predict(test_x);
+s_class_SR1 = SVM_Opt_model(train_x, train_y,  'RBF', C, 0, optimizer)
+logits = s_class_SR1.predict(test_x);
 [TPR_lst_SR1, FPR_lst_SR1] = GenRoc(logits, test_y);
 area = AUC(TPR_lst_SR1, FPR_lst_SR1);
 txt2 = sprintf('SR1: AUC=%.4f', area);
 
+template = [0:0.05:1];
+
+
 figure, plot(FPR_lst_PR, TPR_lst_PR, 'linewidth', 2, 'MarkerSize',12)
 hold on
 plot(FPR_lst_SR1, TPR_lst_SR1, 'linewidth', 2, 'MarkerSize',12)
-plot(FPR_lst_PR, FPR_lst_PR, 'linewidth', 2, 'MarkerSize',12)
+plot(template, template, 'linewidth', 2, 'MarkerSize',12)
 legend(txt1,txt2, 'baseline')
-title('ROC Curve of Anomaly Detection');
+title('ROC Curve of Binary Classification');
 hold off
 
 figure, 
@@ -97,14 +105,13 @@ hold off
 % Y = tsne(data_x);
 % figure, gscatter(Y(:,1),Y(:,2),data_y_cat)
 
-
 function [TPR, FPR] = GetStat(prob, mask, threshold, target)
     temp = zeros(length(prob), 1);
     for i=1:length(prob)
         if prob(i) > threshold
-            temp(i) = -1;
-        else
             temp(i) = 1;
+        else
+            temp(i) = -1;
         end
     end
     

@@ -58,7 +58,14 @@ function [xMin, fMin, nIter, info] = PenaltyAugmented(Q, mu0,x0, type, optimizer
         end
              
         x_k = cur_x;
-        mu_k = mu_k*1.5;           
+        mu_k = mu_k*2;           
+%         f_k_1 = Q.f(x_k, mu_k);
+%         if f_k_1 > f_k
+%             mu_k = mu0;
+%             f_k = f_k_1;
+%         else
+%             f_k = f_k_1;
+%         end
         
         info.mus = [info.mus, mu_k];
         info.xs = [info.xs, x_k];
