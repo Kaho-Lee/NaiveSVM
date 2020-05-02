@@ -35,7 +35,7 @@ function [xMin, fMin, nIter, info] = PenaltyAugmented(Q, mu0,x0, type, optimizer
                 cur_Q.f = @(x) Q.f(x, mu_k);
                 cur_Q.df = @(x) Q.df(x, mu_k);
                 switch optimizer
-                    case 'SR1'
+                    case 'BFGS'
                         % Trust region parameters 
                         eta = 0.1;  % Step acceptance relative progress threshold
                         Delta = 1; % Trust region radius

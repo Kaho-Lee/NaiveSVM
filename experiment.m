@@ -19,7 +19,7 @@ y(y == 1) = -1;
 y(y == 2) = 1;
 C=100;
 
-optimizer = 'SR1';
+optimizer = 'BFGS';
 %optimizer = 'ConjugateGrad';
 
 s = SVM_Opt_model(X, y, 'linear', C, 0, optimizer)

@@ -63,7 +63,7 @@ logits = s_class_PR.predict(test_x);
 area = AUC(TPR_lst_PR, FPR_lst_PR);
 txt1 = sprintf('PR: AUC=%.4f', area);
 
-optimizer = 'SR1';
+optimizer = 'BFGS';
 s_class_SR1 = SVM_Opt_model(train_x, train_y,  'RBF', C, 0, optimizer)
 logits = s_class_SR1.predict(test_x);
 [TPR_lst_SR1, FPR_lst_SR1] = GenRoc(logits, test_y);
@@ -84,7 +84,7 @@ hold off
 figure, plot(s_class_SR1.QP_grad, 'o-', 'linewidth', 2, 'MarkerSize',7)
 hold on
 plot(s_class_PR.QP_grad, '*-', 'linewidth', 2, 'MarkerSize',4)
-legend('SR1: ||\\nabla Q||_{2}', 'PR: ||\\nabla Q||_{2}')
+legend('BFGS: ||\nabla Q||_{2}', 'PR: ||\nabla Q||_{2}')
 hold off
 
 
@@ -95,7 +95,7 @@ plot(s_class_PR.QP_qCon, '*-', 'linewidth', 2, 'MarkerSize',4)
 txt = sprintf('Convergence Analysis: ||x_{k} - x^{*}||_{2}/||x_{k-1} - x^{*}||_{2}');
 title(txt)
 xlabel('Iteration k')
-legend('SR1', 'PR')
+legend('BFGS', 'PR')
 hold off
 
 Y = tsne(data_x);
