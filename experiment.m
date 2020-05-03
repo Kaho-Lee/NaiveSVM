@@ -10,8 +10,8 @@ y_cat = species(inds);
 %     X(:,i) = (X(:,i) - mean(X(:,i)))/std(X(:,i));
 % end
 
-% X = X(1:55,:);
-% y_cat = y_cat(1:55);
+% X = X(1:60,:);
+% y_cat = y_cat(1:);
 
 y = grp2idx(y_cat);
 
@@ -20,7 +20,6 @@ y(y == 2) = 1;
 C=100;
 
 optimizer = 'BFGS';
-%optimizer = 'ConjugateGrad';
 
 s = SVM_Opt_model(X, y, 'linear', C, 0, optimizer)
 
@@ -67,7 +66,9 @@ out = reshape(score,size(x1_grid,1),size(x2_grid,2));
 figure, contour(x1_grid,x2_grid, out, 'ShowText','on')
 hold on
 plot(X_nonlin(:,1),X_nonlin(:,2), 'k.')
-plot(s_outlier.SVs(:,1),s_outlier.SVs(:,2),'ko','MarkerSize',10)
+if ~isempty(s_outlier.SVs)
+    plot(s_outlier.SVs(:,1),s_outlier.SVs(:,2),'ko','MarkerSize',10)
+end
 legend('Logit Value Contour','Observations', 'Support Vecotrs')
 hold off
 

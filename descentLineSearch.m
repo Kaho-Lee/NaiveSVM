@@ -27,9 +27,9 @@ function [xMin, fMin, nIter, info] = descentLineSearch(F, descent, ls, alpha0, x
 % Parameters
 % Stopping condition {'step', 'grad'}
 stopType = 'grad';
+% stopType = 'newton decrement';
 
 stopType = 'PenaltyAugmented';
-
 decay = 0.9;
 
 % Extract inverse Hessian approximation handler
@@ -63,7 +63,26 @@ while (~stopCond && nIter <= maxIter)
         p_k = -F.d2f(x_k)\F.df(x_k); % Newton direction
         if p_k'*F.df(x_k) > 0 % force to be descent direction (only active if F.d2f(x_k) not pos.def.)
           p_k = -p_k;
-        end
+        end        
+      case 'newton_logbarrier'
+           size_a = size(F.z);
+           first_row = [F.d2f(x_k), F.z'];
+           second_row = [F.z, zeros(size_a(1), size_a(1))];
+           block_matrix = [first_row; second_row];
+           residual_mat = -1 *[F.df(x_k); zeros(size_a(1), 1)];
+           det_block = det(block_matrix)
+%            disp(size(block_matrix))
+%            disp(size(residual_mat))
+           if det_block == 0
+               inv_block = pinv(block_matrix);
+               change_x_v = inv_block * residual_mat;
+           else
+               change_x_v  = inv(block_matrix) * residual_mat;
+           end
+           p_k = change_x_v(1:length(x_k));
+           newton_decrement = -F.df(x_k)'*p_k;
+%            size(p_k)
+           
       case 'bfgs'
         %======================== YOUR CODE HERE ==========================================
         if nIter == 1
@@ -102,6 +121,10 @@ while (~stopCond && nIter <= maxIter)
         %======================== YOUR CODE HERE ==========================================
         if nIter == 1
             H = H_k(eye(length(x0)));
+            if extractH
+                % Extraction of H_k as handler
+                info.H{length(info.H)+1} = H_k;
+            end
         end
         
         H_k = @(H) (eye(length(x0)) - rho*s_k*y_k') * H * (eye(length(x0)) - rho*y_k*s_k') + rho*s_k*transpose(s_k);
@@ -124,6 +147,9 @@ while (~stopCond && nIter <= maxIter)
         % Compute relative step length
         normStep = norm(x_k - x_k_1)/norm(x_k_1);
         stopCond = (normStep < tol);
+      case 'newton decrement'
+        normStep = norm(x_k - x_k_1)/norm(x_k_1);
+        stopCond = (normStep < 1e-6) || (newton_decrement < tol)
       case 'grad'
         stopCond = (norm(F.df(x_k), 'inf') < tol*(1 + abs(F.f(x_k))));
       case 'PenaltyAugmented'
@@ -140,4 +166,5 @@ end
 % Assign output values 
 xMin = x_k;
 fMin = F.f(x_k);
+% info.H_value = H;
 end

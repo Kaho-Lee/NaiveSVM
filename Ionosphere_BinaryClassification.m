@@ -56,19 +56,19 @@ test_y = [negative_y(ceil(length(G_index)/2)+1:length(G_index)); positive_y(6:10
 % end
 
 C=10;
-optimizer = 'ConjugateGrad';
-s_class_PR = SVM_Opt_model(train_x, train_y,  'RBF', C, 0, optimizer)
-logits = s_class_PR.predict(test_x);
+optimizer = 'SMO';
+s_class_SMO = SVM_Opt_model(train_x, train_y,  'RBF', C, 0, 'SMO', optimizer)
+logits = s_class_SMO.predict(test_x);
 [TPR_lst_PR, FPR_lst_PR] = GenRoc(logits, test_y);
 area = AUC(TPR_lst_PR, FPR_lst_PR);
-txt1 = sprintf('PR: AUC=%.4f', area);
+txt1 = sprintf('SMO: AUC=%.4f, CPUTime=%.3f s', area, s_class_SMO.e);
 
 optimizer = 'BFGS';
-s_class_SR1 = SVM_Opt_model(train_x, train_y,  'RBF', C, 0, optimizer)
-logits = s_class_SR1.predict(test_x);
+s_class_BFGS = SVM_Opt_model(train_x, train_y,  'RBF', C, 0, 'QuadraticPenalty', optimizer)
+logits = s_class_BFGS.predict(test_x);
 [TPR_lst_SR1, FPR_lst_SR1] = GenRoc(logits, test_y);
 area = AUC(TPR_lst_SR1, FPR_lst_SR1);
-txt2 = sprintf('SR1: AUC=%.4f', area);
+txt2 = sprintf('BFGS: AUC=%.4f, CPUTime=%.3f s', area, s_class_BFGS.e);
 
 template = [0:0.05:1];
 
@@ -81,21 +81,29 @@ legend(txt1,txt2, 'baseline')
 title('ROC Curve of Binary Classification');
 hold off
 
-figure, plot(s_class_SR1.QP_grad, 'o-', 'linewidth', 2, 'MarkerSize',7)
+
+figure, plot(s_class_BFGS.QP_grad, 'o-', 'linewidth', 2, 'MarkerSize',7)
 hold on
-plot(s_class_PR.QP_grad, '*-', 'linewidth', 2, 'MarkerSize',4)
-legend('BFGS: ||\nabla Q||_{2}', 'PR: ||\nabla Q||_{2}')
+legend('BFGS: ||\nabla Q||_{2}')
 hold off
 
 
-figure, plot(s_class_SR1.QP_qCon, 'o-', 'linewidth', 2, 'MarkerSize',7)
+figure, plot(s_class_BFGS.QP_qCon, 'o-', 'linewidth', 2, 'MarkerSize',7)
 hold on
 ylim([0 inf])
-plot(s_class_PR.QP_qCon, '*-', 'linewidth', 2, 'MarkerSize',4)
 txt = sprintf('Convergence Analysis: ||x_{k} - x^{*}||_{2}/||x_{k-1} - x^{*}||_{2}');
 title(txt)
 xlabel('Iteration k')
-legend('BFGS', 'PR')
+legend('BFGS: ||x_{k} - x^{*}||_{2}/||x_{k-1} - x^{*}||_{2}')
+hold off
+
+figure, plot(s_class_SMO.QP_qCon, '*-', 'linewidth', 2, 'MarkerSize',4)
+hold on
+ylim([0 inf])
+txt = sprintf('Convergence Analysis: ||x_{k} - x^{*}||_{2}');
+title(txt)
+xlabel('Iteration k')
+legend('SMO: ||x_{k} - x^{*}||_{2}')
 hold off
 
 Y = tsne(data_x);

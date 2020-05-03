@@ -79,20 +79,21 @@ legend(txt1,txt2, 'baseline')
 title('ROC Curve of Anomaly Detection');
 hold off
 
-% figure, 
-% subplot(1,2,1);
-% plot(s_class_BFGS.QP_grad, '.-', 'linewidth', 2, 'MarkerSize',12)
-% txt = sprintf('BFGS: ||\\nabla Q||_{2}');
-% title(txt)
-% subplot(1,2,2);
-% plot(s_class_PR.QP_grad, '.-', 'linewidth', 2, 'MarkerSize',12)
-% txt = sprintf('PR: ||\\nabla Q||_{2}');
-% title(txt)
+figure, 
+subplot(1,2,1);
+plot(s_class_BFGS.QP_grad, '.-', 'linewidth', 2, 'MarkerSize',12)
+txt = sprintf('BFGS: ||\\nabla Q||_{2}');
+title(txt)
+subplot(1,2,2);
+plot(s_class_PR.QP_grad, '.-', 'linewidth', 2, 'MarkerSize',12)
+txt = sprintf('PR: ||\\nabla Q||_{2}');
+title(txt)
 
 
 figure, plot(s_class_BFGS.QP_grad, 'o-', 'linewidth', 2, 'MarkerSize',7)
 hold on
 plot(s_class_PR.QP_grad, '*-', 'linewidth', 2, 'MarkerSize',4)
+% plot(s_class_BFGS.Hessian_lst, '.-', 'linewidth', 2, 'MarkerSize',4)
 legend('BFGS: ||\nabla Q||_{2}', 'PR: ||\nabla Q||_{2}')
 hold off
 

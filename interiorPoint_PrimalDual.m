@@ -63,6 +63,8 @@ infoPD.r_prim = [];
 infoPD.surgap = [];
 infoPD.s = [];
 
+size(eqConstraint.A)
+size(n_k)
 % Define residual function
 r_dual = @(t, x, l, n) F.df(x) + (ineqConstraint.df(x))'*l + eqConstraint.A'*n;
 r_cent = @(t, x, l, n) -diag(l)*ineqConstraint.f(x) - diag(ineqConstraint.f(x))*(ones(m, 1)/t);
@@ -94,14 +96,25 @@ while (~stopCond && nIter < maxIter)
                size(-diag(l_k)*ineqConstraint.df(x_k))       , size(-diag(ineqConstraint.f(x_k))), size(zeros(m, nEq))  ; ...
                size(eqConstraint.A  )                        ,  size(zeros(nEq, m))              , size(zeros(nEq, nEq))];
     
-    temp = inv([F.d2f(x_k) + hessIneqConstraints_x_k,  ineqConstraint.df(x_k)'    , eqConstraint.A'; ...
+    temp = det([F.d2f(x_k) + hessIneqConstraints_x_k,  ineqConstraint.df(x_k)'    , eqConstraint.A'; ...
                -diag(l_k)*ineqConstraint.df(x_k)       , -diag(ineqConstraint.f(x_k)), zeros(m, nEq)  ; ...
                eqConstraint.A                          ,  zeros(nEq, m)              , zeros(nEq, nEq)]);
+           
+    
     %jiahao
-    deltaY = -[F.d2f(x_k) + hessIneqConstraints_x_k,  ineqConstraint.df(x_k)'    , eqConstraint.A'; ...
-               -diag(l_k)*ineqConstraint.df(x_k)       , -diag(ineqConstraint.f(x_k)), zeros(m, nEq)  ; ...
-               eqConstraint.A                          ,  zeros(nEq, m)              , zeros(nEq, nEq)]\res_k;
-             
+%     deltaY = -[F.d2f(x_k) + hessIneqConstraints_x_k,  ineqConstraint.df(x_k)'    , eqConstraint.A'; ...
+%                -diag(l_k)*ineqConstraint.df(x_k)       , -diag(ineqConstraint.f(x_k)), zeros(m, nEq)  ; ...
+%                eqConstraint.A                          ,  zeros(nEq, m)              , zeros(nEq, nEq)]\res_k;
+    if temp <1e-4        
+        inv_block = pinv([F.d2f(x_k) + hessIneqConstraints_x_k,  ineqConstraint.df(x_k)'    , eqConstraint.A'; ...
+                   -diag(l_k)*ineqConstraint.df(x_k)       , -diag(ineqConstraint.f(x_k)), zeros(m, nEq)  ; ...
+                   eqConstraint.A                          ,  zeros(nEq, m)              , zeros(nEq, nEq)]);    
+        deltaY = -inv_block*res_k;
+    else
+        deltaY = -[F.d2f(x_k) + hessIneqConstraints_x_k,  ineqConstraint.df(x_k)'    , eqConstraint.A'; ...
+           -diag(l_k)*ineqConstraint.df(x_k)       , -diag(ineqConstraint.f(x_k)), zeros(m, nEq)  ; ...
+           eqConstraint.A                          ,  zeros(nEq, m)              , zeros(nEq, nEq)]\res_k;
+    end
     % BAcktracking line search adapted to PD
     deltaX = deltaY(1:n); %delta x
     deltaL = deltaY(n+1:n+m); %delta lambda 
