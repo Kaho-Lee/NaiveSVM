@@ -15,8 +15,8 @@ data_y_cat = data{35};
 data_x = zeros(351,34);
 
 data_y = grp2idx(data_y_cat);
-data_y(data_y == 1) = -1; %good - negative (majority)
-data_y(data_y == 2) = 1; %bad - positive (anomaly)
+data_y(data_y == 1) = 1; %good - negative (majority)
+data_y(data_y == 2) = -1; %bad - positive (anomaly)
 for i=1:34
     data_x(:,i) = [data{i}];
 end
@@ -27,18 +27,18 @@ negative_y = data_y(G_index, :);
 positive_x = data_x(B_index, :);
 positive_y = data_y(B_index, :);
 
-% train_x = [negative_x(1:ceil(length(G_index)/2), :); positive_x(1:ceil(length(B_index)/2), :)];
-% train_y = [negative_y(1:ceil(length(G_index)/2), :); positive_y(1:ceil(length(B_index)/2), :)];
-% test_x = [negative_x(ceil(length(G_index)/2)+1:length(G_index), :); positive_x(ceil(length(B_index)/2)+1:length(B_index), :)];
-% test_y = [negative_y(ceil(length(G_index)/2)+1:length(G_index), :); positive_y(ceil(length(B_index)/2)+1:length(B_index), :)];
+train_x = [negative_x(1:ceil(length(G_index)/2), :); positive_x(1:ceil(length(B_index)/2), :)];
+train_y = [negative_y(1:ceil(length(G_index)/2)); positive_y(1:ceil(length(B_index)/2))];
+test_x = [negative_x(ceil(length(G_index)/2)+1:length(G_index), :); positive_x(ceil(length(B_index)/2)+1:length(B_index), :)];
+test_y = [negative_y(ceil(length(G_index)/2)+1:length(G_index)); positive_y(ceil(length(B_index)/2)+1:length(B_index))];
 
-selectPositiveData = randperm(length(B_index), 5);
-train_x = [negative_x(1:ceil(length(G_index)/2), :); positive_x(selectPositiveData, :)];
-train_y = [negative_y(1:ceil(length(G_index)/2)); positive_y(selectPositiveData)];
-
-selectPositiveData = randperm(length(B_index), 5);
-test_x = [negative_x(ceil(length(G_index)/2)+1:length(G_index), :); positive_x(selectPositiveData, :)];
-test_y = [negative_y(ceil(length(G_index)/2)+1:length(G_index)); positive_y(selectPositiveData)];
+% selectPositiveData = randperm(length(B_index), 5);
+% train_x = [negative_x(1:ceil(length(G_index)/2), :); positive_x(selectPositiveData, :)];
+% train_y = [negative_y(1:ceil(length(G_index)/2)); positive_y(selectPositiveData)];
+% 
+% selectPositiveData = randperm(length(B_index), 10);
+% test_x = [negative_x(ceil(length(G_index)/2)+1:length(G_index), :); positive_x(selectPositiveData, :)];
+% test_y = [negative_y(ceil(length(G_index)/2)+1:length(G_index)); positive_y(selectPositiveData)];
 
 C=10;
 optimizer = 'SMO';
@@ -81,14 +81,14 @@ ylim([0 inf])
 txt = sprintf('Convergence Analysis: SMO');
 title(txt)
 xlabel('Iteration k')
-legend('||x_{k} - x^{*}||_{2}', 'Fraction: KKT Dual-Complementarity')
+legend('||x_{k} - x^{*}||_{2}/||x_{k-1} - x^{*}||_{2}', 'Fraction: KKT Dual-Complementarity')
 hold off
 
-Y = tsne(data_x);
-figure, gscatter(Y(:,1),Y(:,2),data_y)
-
-Y = tsne(test_x);
-figure, gscatter(Y(:,1),Y(:,2),test_y)
+% Y = tsne(data_x);
+% figure, gscatter(Y(:,1),Y(:,2),data_y)
+% 
+% Y = tsne(test_x);
+% figure, gscatter(Y(:,1),Y(:,2),test_y)
 
 function [TPR, FPR] = GetStat(prob, mask, threshold, target)
     temp = zeros(length(prob), 1);

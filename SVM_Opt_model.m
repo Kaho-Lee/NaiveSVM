@@ -20,8 +20,8 @@ classdef SVM_Opt_model
         fMin;
         nIter;
         info;
-        QP_qCon;
-        QP_grad;
+        QP_qCon; %convergence data placeholder, ignore the name
+        QP_grad; %convergence data placeholder, ignore the name
         KernelMatrix; % K_ij = <x_i, x_j>
         method;
     end
@@ -86,28 +86,6 @@ classdef SVM_Opt_model
             mu0 = 1;
             a0 = obj.A;
             [aMin, fMin_QP, nIter_QP, info_QP] = PenaltyAugmented(obj.L, mu0, a0, 'QuadraticPenalty', obj.optimizer);                       
-            
-            
-% Interior method: wait for fixing, numerical unstable.
-
-%             a0 = obj.A;
-%             mu = 3;
-%             tol = 1e-10;
-%             maxIter = 200;
-%             t=1;
-%            [aMin, fMin_QP, t, nIter_QP, info_QP] =interiorPoint_Barrier(obj.L.F, obj.L.phi, a0, t, mu, tol, maxIter)
-
-%             lambda0 = zeros(2*length(obj.A), 1) + 10;
-%             lambda0 = [-1/(-obj.A) -1/(obj.A-obj.C) ].';
-%             mu = 10;
-%             nu0 = zeros(length(obj.y), 1)+1;
-%             tol = 1e-6;
-%             tolFeas = 1e-6;
-%             maxIter = 100;
-%             opts.maxIter = 100;
-%             opts.alpha = 0.1;
-%             opts.beta = 0.8;
-%             [aMin, fMin_QP, t, nIter_QP, info_QP] = interiorPoint_PrimalDual(obj.L.F, obj.L.ineqConstraint, obj.L.eqConstraint, obj.A, lambda0, nu0, mu, tol, tolFeas, maxIter, opts)
             
             e = cputime-t;
             disp('finish training')
@@ -196,51 +174,6 @@ classdef SVM_Opt_model
                 df = str2func(str);
                 L.df = @(a, mu) df(a, mu, obj.H, obj.C);
             end
-        end
-        
-        function L = InteriorPoint_Barrier(obj)
-            L.F.f = @(a) 0.5*sum((a * a.').*obj.H, 'all') - sum(a, 'all');
-            str = '@(a, H)[';
-            for i=1:obj.size
-                df_i = sprintf("0.5*(sum(a.'.*H(%d,:), 'all') + a.'*H(:,%d)) - 1;",i,i);
-                str = strcat(str,df_i);
-            end
-            str = strcat(str,"];");
-            df = str2func(str);
-            L.F.df = @(a) df(a, obj.H);
-            L.F.d2f = @(a) obj.H;
-            
-            %log(-f_i(x))
-            L.phi.f = @(a) -sum(log(a), 'all') - sum(log(obj.C - a), 'all');
-            L.phi.df = @(a) -1.*(1./a) + 1./(obj.C-a);
-            L.phi.d2f = @(a) diag(1./(a.^2)) + diag(1./((a-obj.C).^2));
-            L.phi.C = obj.C;
-            %L.phi.A = [diag(obj.y);diag(obj.y)];
-            
-            L.phi.z = diag(obj.y);
-        end
-        
-        function L = InteriorPoint_PrimalDual(obj)
-            L.F.f = @(a) 0.5*sum((a * a.').*obj.H, 'all') - sum(a, 'all');
-            str = '@(a, H)[';
-            for i=1:obj.size
-                df_i = sprintf("0.5*(sum(a.'.*H(%d,:), 'all') + a.'*H(:,%d)) - 1;",i,i);
-                str = strcat(str,df_i);
-            end
-            str = strcat(str,"];");
-            df = str2func(str);
-            L.F.df = @(a) df(a, obj.H);
-            L.F.d2f = @(a) obj.H;
-            
-            ineqConstraint.f = @(a, C) [a.', a.'-C].';
-            ineqConstraint.df = @(a) [diag(zeros(1, length(a))-1);  diag(zeros(1, length(a))+1)];
-            ineqConstraint.d2f = @(a) zeros(length(obj.A),length(obj.A), 2*length(obj.A));
-            
-            L.ineqConstraint.f = @(a) ineqConstraint.f(a, obj.C);
-            L.ineqConstraint.df = ineqConstraint.df;
-            L.ineqConstraint.d2f = ineqConstraint.d2f;
-            L.eqConstraint.A = diag(obj.y.');
-            L.eqConstraint.b = zeros(1, 1);
         end
                 
         function [H, KernelMatrix] = setH(obj)            

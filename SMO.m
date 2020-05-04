@@ -1,4 +1,5 @@
 function [A, b, info] = SMO( y, C, tol, max_passes, dataSize, KernelMat)
+% mainly follow the pseudocode in http://cs229.stanford.edu/materials/smo.pdf
     A= zeros(dataSize,1);
     b = 0;
     passes = 0;

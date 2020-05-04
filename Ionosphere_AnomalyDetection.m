@@ -33,13 +33,17 @@ positive_y = data_y(B_index, :);
 % test_x = [negative_x(ceil(length(G_index)/2)+1:length(G_index), :); positive_x(:,:)];
 % test_y = [negative_y(ceil(length(G_index)/2)+1:length(G_index), :); positive_y(:,:)];
 
-selectPositiveData = randperm(length(B_index), 5);
-train_x = [negative_x(1:ceil(length(G_index)/2), :); positive_x(selectPositiveData, :)];
-train_y = [negative_y(1:ceil(length(G_index)/2)); positive_y(selectPositiveData)];
-
-selectPositiveData = randperm(length(B_index), 10);
-test_x = [negative_x(ceil(length(G_index)/2)+1:length(G_index), :); positive_x(selectPositiveData,:)];
-test_y = [negative_y(ceil(length(G_index)/2)+1:length(G_index), :); positive_y(selectPositiveData,:)];
+% selectPositiveData = randperm(length(B_index), 0);
+% train_x = [negative_x(1:ceil(length(G_index)/2), :); positive_x(selectPositiveData, :)];
+% train_y = [negative_y(1:ceil(length(G_index)/2)); positive_y(selectPositiveData)];
+% 
+% selectPositiveData = randperm(length(B_index), 10);
+% test_x = [negative_x(ceil(length(G_index)/2)+1:length(G_index), :); positive_x(selectPositiveData,:)];
+% test_y = [negative_y(ceil(length(G_index)/2)+1:length(G_index), :); positive_y(selectPositiveData,:)];
+train_x = [negative_x(1:ceil(length(G_index)/2), :); positive_x(1:ceil(length(B_index)/2), :)];
+train_y = [negative_y(1:ceil(length(G_index)/2)); positive_y(1:ceil(length(B_index)/2))];
+test_x = [negative_x(ceil(length(G_index)/2)+1:length(G_index), :); positive_x(ceil(length(B_index)/2)+1:length(B_index), :)];
+test_y = [negative_y(ceil(length(G_index)/2)+1:length(G_index)); positive_y(ceil(length(B_index)/2)+1:length(B_index))];
 
 C=1000;
 
@@ -68,8 +72,11 @@ xlabel('Iteration k')
 legend('||x_{k} - x^{*}||_{2}/||x_{k-1} - x^{*}||_{2}', '||\nabla Q||_{2}')
 hold off
 
-Y = tsne(test_x);
-figure, gscatter(Y(:,1),Y(:,2),test_y)
+Y = tsne(data_x);
+figure, gscatter(Y(:,1),Y(:,2),data_y_cat)
+
+% Y = tsne(test_x);
+% figure, gscatter(Y(:,1),Y(:,2),test_y)
 
 
 function [TPR, FPR] = GetStat(prob, mask, threshold, target)
