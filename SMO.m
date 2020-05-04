@@ -61,11 +61,12 @@ function [A, b, info] = SMO( y, C, tol, max_passes, dataSize, KernelMat)
                 num_changed_alphas = num_changed_alphas + 1;                    
             end
         end
-        info.xs = [info.xs, A];
+        
         if num_changed_alphas == 0
             passes =passes + 1;
         else
             passes = 0;
+            info.xs = [info.xs, A];
         end
     end
     disp('finish training')

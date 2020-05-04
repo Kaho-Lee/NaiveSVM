@@ -41,6 +41,23 @@ selectPositiveData = randperm(length(B_index), 10);
 test_x = [negative_x(ceil(length(G_index)/2)+1:length(G_index), :); positive_x(selectPositiveData,:)];
 test_y = [negative_y(ceil(length(G_index)/2)+1:length(G_index), :); positive_y(selectPositiveData,:)];
 
+
+% for i=1:length(train_x(1,:))
+%     if std(train_x(:,i)) >0
+%         train_x(:,i) = (train_x(:,i) - mean(train_x(:,i)))/std(train_x(:,i));
+%     else
+%         continue;
+%     end
+% end
+% 
+% for i=1:length(test_x(1,:))
+%     if std(test_x(:,i)) >0
+%         test_x(:,i) = (test_x(:,i) - mean(test_x(:,i)))/std(test_x(:,i));
+%     else
+%         continue
+%     end
+% end
+
 C=1000;
 
 optimizer = 'BFGS';
@@ -58,14 +75,20 @@ legend(txt2, 'baseline')
 title('ROC Curve of Binary Classification');
 hold off
 
+
+figure, plot(s_class_BFGS.QP_grad, 'o-', 'linewidth', 2, 'MarkerSize',7)
+hold on
+legend('BFGS: ||\nabla Q||_{2}')
+hold off
+
+
 figure, plot(s_class_BFGS.QP_qCon, 'o-', 'linewidth', 2, 'MarkerSize',7)
 hold on
 ylim([0 inf])
-plot(s_class_BFGS.QP_grad, 'o-', 'linewidth', 2, 'MarkerSize',7)
-txt = sprintf('Convergence Analysis: BFGS');
+txt = sprintf('Convergence Analysis: BFG');
 title(txt)
 xlabel('Iteration k')
-legend('||x_{k} - x^{*}||_{2}/||x_{k-1} - x^{*}||_{2}', '||\nabla Q||_{2}')
+legend('||x_{k} - x^{*}||_{2}/||x_{k-1} - x^{*}||_{2}')
 hold off
 
 Y = tsne(test_x);
@@ -130,5 +153,7 @@ function area = AUC(TPR_lst, FPR_lst)
     for i =1:length(TPR_lst)-1
         slice = abs(FPR_lst(i+1)-FPR_lst(i))*(TPR_lst(i)+TPR_lst(i+1))*0.5;
         area = area + slice;
-    end        
+    end
+        
+        
 end

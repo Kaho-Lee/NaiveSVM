@@ -74,7 +74,7 @@ classdef SVM_Opt_model
         
         function [A, b, info, e] = fit_SMO(obj)
             t = cputime;
-            tol = 0.001;
+            tol = 1e-8;
             max_passes = 100;
             [A, b, info] = SMO( obj.y, obj.C, tol, max_passes, obj.size, obj.KernelMatrix);
             e = cputime-t;
@@ -146,23 +146,22 @@ classdef SVM_Opt_model
                     QP_grad = [QP_grad norm(obj.L.df(obj.info.xs(:,i), obj.info.mus(i)))];
                 end
             elseif strcmp(obj.method, 'SMO')
-                for i=2:length(obj.info.xs(1,:))
-                    QP_qCon = [QP_qCon norm(obj.info.xs(:, i)-obj.A)/norm(obj.info.xs(:, i-1)-obj.A)];
+                for i=1:length(obj.info.xs(1,:))
+                    QP_qCon = [QP_qCon norm(obj.info.xs(:, i)-obj.A)];
                 end
-                tol = 0.001;
                 for i=1:length(obj.info.xs(1,:))
                     cond_check = 0;
                     for j=1:obj.size
                         E = (sum(obj.info.xs(:,i).*obj.y.*obj.KernelMatrix(:, j), 'all')+obj.b)*obj.y(j);
-                        if obj.A(j) == 0 && E >= 1-tol
+                        if obj.info.xs(j,i) == 0 && E >= 1-1e-8
                             cond_check = cond_check+1;
-                        elseif obj.A(j) == obj.C &&  E<= 1+tol
+                        elseif obj.info.xs(j,i) == obj.C &&  E<= 1+1e-8
                             cond_check = cond_check+1;
-                        elseif obj.A(j) < obj.C && obj.A(j) > 0 && E-1<tol
+                        elseif obj.info.xs(j,i) < obj.C && obj.info.xs(j,i) > 0 && E-1<1e-8
                             cond_check =  cond_check+ 1;
                         end
                     end
-                    QP_grad = [QP_grad, cond_check/obj.size];
+                    QP_grad = [QP_grad, cond_check];
                 end
             end            
         end

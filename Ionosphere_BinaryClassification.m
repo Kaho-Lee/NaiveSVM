@@ -11,7 +11,6 @@ data_format = strcat(data_format, '%s')
 data=textscan(fid,data_format,'delimiter',',');
 fclose(fid);
 
-
 data_y_cat = data{35};
 data_x = zeros(351,34);
 
@@ -30,84 +29,66 @@ positive_y = data_y(B_index, :);
 
 % train_x = [negative_x(1:ceil(length(G_index)/2), :); positive_x(1:ceil(length(B_index)/2), :)];
 % train_y = [negative_y(1:ceil(length(G_index)/2), :); positive_y(1:ceil(length(B_index)/2), :)];
-
-train_x = [negative_x(1:ceil(length(G_index)/2), :); positive_x(1:5, :)];
-train_y = [negative_y(1:ceil(length(G_index)/2)); positive_y(1:5)];
 % test_x = [negative_x(ceil(length(G_index)/2)+1:length(G_index), :); positive_x(ceil(length(B_index)/2)+1:length(B_index), :)];
 % test_y = [negative_y(ceil(length(G_index)/2)+1:length(G_index), :); positive_y(ceil(length(B_index)/2)+1:length(B_index), :)];
 
-test_x = [negative_x(ceil(length(G_index)/2)+1:length(G_index), :); positive_x(6:10, :)];
-test_y = [negative_y(ceil(length(G_index)/2)+1:length(G_index)); positive_y(6:10)];
+selectPositiveData = randperm(length(B_index), 5);
+train_x = [negative_x(1:ceil(length(G_index)/2), :); positive_x(selectPositiveData, :)];
+train_y = [negative_y(1:ceil(length(G_index)/2)); positive_y(selectPositiveData)];
 
-% for i=1:length(train_x(1,:))
-%     if std(train_x(:,i)) >0
-%         train_x(:,i) = (train_x(:,i) - mean(train_x(:,i)))/std(train_x(:,i));
-%     else
-%         continue;
-%     end
-% end
-% 
-% for i=1:length(test_x(1,:))
-%     if std(test_x(:,i)) >0
-%         test_x(:,i) = (test_x(:,i) - mean(test_x(:,i)))/std(test_x(:,i));
-%     else
-%         continue
-%     end
-% end
+selectPositiveData = randperm(length(B_index), 5);
+test_x = [negative_x(ceil(length(G_index)/2)+1:length(G_index), :); positive_x(selectPositiveData, :)];
+test_y = [negative_y(ceil(length(G_index)/2)+1:length(G_index)); positive_y(selectPositiveData)];
 
 C=10;
 optimizer = 'SMO';
 s_class_SMO = SVM_Opt_model(train_x, train_y,  'RBF', C, 0, 'SMO', optimizer)
 logits = s_class_SMO.predict(test_x);
-[TPR_lst_PR, FPR_lst_PR] = GenRoc(logits, test_y);
-area = AUC(TPR_lst_PR, FPR_lst_PR);
+[TPR_lst_SMO, FPR_lst_SMO] = GenRoc(logits, test_y);
+area = AUC(TPR_lst_SMO, FPR_lst_SMO);
 txt1 = sprintf('SMO: AUC=%.4f, CPUTime=%.3f s', area, s_class_SMO.e);
 
 optimizer = 'BFGS';
 s_class_BFGS = SVM_Opt_model(train_x, train_y,  'RBF', C, 0, 'QuadraticPenalty', optimizer)
 logits = s_class_BFGS.predict(test_x);
-[TPR_lst_SR1, FPR_lst_SR1] = GenRoc(logits, test_y);
-area = AUC(TPR_lst_SR1, FPR_lst_SR1);
+[TPR_lst_BFGS, FPR_lst_BFGS] = GenRoc(logits, test_y);
+area = AUC(TPR_lst_BFGS, FPR_lst_BFGS);
 txt2 = sprintf('BFGS: AUC=%.4f, CPUTime=%.3f s', area, s_class_BFGS.e);
 
 template = [0:0.05:1];
-
-
-figure, plot(FPR_lst_PR, TPR_lst_PR, 'linewidth', 2, 'MarkerSize',12)
+figure, plot(FPR_lst_SMO, TPR_lst_SMO, 'linewidth', 2, 'MarkerSize',12)
 hold on
-plot(FPR_lst_SR1, TPR_lst_SR1, 'linewidth', 2, 'MarkerSize',12)
+plot(FPR_lst_BFGS, TPR_lst_BFGS, 'linewidth', 2, 'MarkerSize',12)
 plot(template, template, 'linewidth', 2, 'MarkerSize',12)
 legend(txt1,txt2, 'baseline')
 title('ROC Curve of Binary Classification');
 hold off
 
-
-figure, plot(s_class_BFGS.QP_grad, 'o-', 'linewidth', 2, 'MarkerSize',7)
-hold on
-legend('BFGS: ||\nabla Q||_{2}')
-hold off
-
-
 figure, plot(s_class_BFGS.QP_qCon, 'o-', 'linewidth', 2, 'MarkerSize',7)
 hold on
+plot(s_class_BFGS.QP_grad, 'o-', 'linewidth', 2, 'MarkerSize',7)
 ylim([0 inf])
-txt = sprintf('Convergence Analysis: ||x_{k} - x^{*}||_{2}/||x_{k-1} - x^{*}||_{2}');
+txt = sprintf('Convergence Analysis: BFGS');
 title(txt)
 xlabel('Iteration k')
-legend('BFGS: ||x_{k} - x^{*}||_{2}/||x_{k-1} - x^{*}||_{2}')
+legend('||x_{k} - x^{*}||_{2}/||x_{k-1} - x^{*}||_{2}', '||\nabla Q||_{2}')
 hold off
 
 figure, plot(s_class_SMO.QP_qCon, '*-', 'linewidth', 2, 'MarkerSize',4)
 hold on
+plot(s_class_SMO.QP_grad, '*-', 'linewidth', 2, 'MarkerSize',4)
 ylim([0 inf])
-txt = sprintf('Convergence Analysis: ||x_{k} - x^{*}||_{2}');
+txt = sprintf('Convergence Analysis: SMO');
 title(txt)
 xlabel('Iteration k')
-legend('SMO: ||x_{k} - x^{*}||_{2}')
+legend('||x_{k} - x^{*}||_{2}', 'Fraction: KKT Dual-Complementarity')
 hold off
 
 Y = tsne(data_x);
 figure, gscatter(Y(:,1),Y(:,2),data_y)
+
+Y = tsne(test_x);
+figure, gscatter(Y(:,1),Y(:,2),test_y)
 
 function [TPR, FPR] = GetStat(prob, mask, threshold, target)
     temp = zeros(length(prob), 1);
@@ -167,7 +148,5 @@ function area = AUC(TPR_lst, FPR_lst)
     for i =1:length(TPR_lst)-1
         slice = abs(FPR_lst(i+1)-FPR_lst(i))*(TPR_lst(i)+TPR_lst(i+1))*0.5;
         area = area + slice;
-    end
-        
-        
+    end       
 end

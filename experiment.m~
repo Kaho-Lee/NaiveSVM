@@ -41,31 +41,6 @@ contour(x1_grid,x2_grid, out, [ [1,1], [-1,-1]], 'k-.', 'ShowText','on')
 gscatter(X(:,1),X(:,2),y_cat)
 plot(s.SVs(:,1),s.SVs(:,2),'ko','MarkerSize',10)
 legend('hyper-plane','margin','-1','1','Support Vector')
-title('BFGS')
-hold off
-
-optimizer = 'SMO';
-s = SVM_Opt_model(X, y, 'linear', C, 0, 'SMO', optimizer)
-
-a = zeros( 100, 1);
-mu = 1;
-constraint_ya = y.' * s.A;
-constraint_a_minus_c = s.A - C;
-
-n = 300;
-x1 = linspace(min(X(:,1))-0.5, max(X(:,1))+0.5, n+1);
-x2 = linspace(min(X(:,2))-0.5, max(X(:,2))+0.5, n+1);
-[x1_grid, x2_grid] = meshgrid(x1,x2);
-score = s.predict([x1_grid(:), x2_grid(:)]);
-out = reshape(score,size(x1_grid,1),size(x2_grid,2));
-
-subplot(1,2,2), contour(x1_grid,x2_grid, out, [0,0] ,'ShowText','on')
-hold on
-contour(x1_grid,x2_grid, out, [ [1,1], [-1,-1]], 'k-.', 'ShowText','on')
-gscatter(X(:,1),X(:,2),y_cat)
-plot(s.SVs(:,1),s.SVs(:,2),'ko','MarkerSize',10)
-legend('hyper-plane','margin','-1','1','Support Vector')
-title('SMO')
 hold off
 
 
@@ -88,8 +63,7 @@ for i=1:length(data3(1,:))
     data3(:,i) = (data3(:,i) - mean(data3(:,i)))/std(data3(:,i));
 end
 
-optimizer = 'BFGS';
-s_nonlin = SVM_Opt_model(data3, theclass, 'RBF', C, 0, 'QuadraticPenalty', optimizer)
+s_nonlin = SVM_Opt_model(data3, theclass, 'RBF', C, 0, optimizer)
 
 n = 300;
 x1 = linspace(min(data3(:,1))-0.5, max(data3(:,1))+0.5, n+1);
@@ -98,38 +72,18 @@ x2 = linspace(min(data3(:,2))-0.5, max(data3(:,2))+0.5, n+1);
 score = s_nonlin.predict([x1_grid(:), x2_grid(:)]);
 out = reshape(score,size(x1_grid,1),size(x2_grid,2));
 
-figure, 
-subplot(1,2,1), contour(x1_grid,x2_grid, out, [0,0], 'ShowText','on')
+%pred = (s.predict(X) == y);
+
+figure, contour(x1_grid,x2_grid, out, [0,0], 'ShowText','on')
 hold on
 contour(x1_grid,x2_grid, out, [ [1,1], [-1,-1]], 'k-.', 'ShowText','on')
 gscatter(data3(:,1),data3(:,2),theclass)
 plot(s_nonlin.SVs(:,1),s_nonlin.SVs(:,2),'ko','MarkerSize',10)
 legend('hyper-plane','margin','-1','1','Support Vector')
-title('BFGS')
 hold off
 
-
-s_nonlin = SVM_Opt_model(data3, theclass, 'RBF', C, 0, 'SMO', 'SMO')
-
-n = 300;
-x1 = linspace(min(data3(:,1))-0.5, max(data3(:,1))+0.5, n+1);
-x2 = linspace(min(data3(:,2))-0.5, max(data3(:,2))+0.5, n+1);
-[x1_grid, x2_grid] = meshgrid(x1,x2);
-score = s_nonlin.predict([x1_grid(:), x2_grid(:)]);
-out = reshape(score,size(x1_grid,1),size(x2_grid,2));
-
- 
-subplot(1,2,2), contour(x1_grid,x2_grid, out, [0,0], 'ShowText','on')
-hold on
-contour(x1_grid,x2_grid, out, [ [1,1], [-1,-1]], 'k-.', 'ShowText','on')
-gscatter(data3(:,1),data3(:,2),theclass)
-plot(s_nonlin.SVs(:,1),s_nonlin.SVs(:,2),'ko','MarkerSize',10)
-legend('hyper-plane','margin','-1','1','Support Vector')
-title('SMO')
-hold off
-
-
-%% Outlier:Experiment in https://uk.mathworks.com/help/stats/fitcsvm.html#bt9w6j6-2
+%% Experiment in https://uk.mathworks.com/help/stats/fitcsvm.html#bt9w6j6-2
+%outlier
 
 load fisheriris
 X_nonlin = meas(:,1:2);
@@ -138,7 +92,7 @@ C=100;
 for i=1:length(X_nonlin(1,:))                    
     X_nonlin(:,i) = (X_nonlin(:,i) - mean(X_nonlin(:,i)))/std(X_nonlin(:,i));
 end
-s_outlier = SVM_Opt_model(X_nonlin, y_nonlin, 'RBF', C, 0.05, 'QuadraticPenalty', optimizer)
+s_outlier = SVM_Opt_model(X_nonlin, y_nonlin, 'RBF', C, 0.05, optimizer)
 
 n = 300;
 x1 = linspace(min(X_nonlin(:,1))-0.5, max(X_nonlin(:,1))+0.5, n+1);
