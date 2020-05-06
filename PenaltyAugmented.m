@@ -1,4 +1,6 @@
 function [xMin, fMin, nIter, info] = PenaltyAugmented(Q, mu0,x0, type, optimizer, varargin)
+    %Implementation of quadratic penalty methods
+    
     % Initialisation
     alpha0 = 1;
     maxIter = 100;
@@ -7,12 +9,6 @@ function [xMin, fMin, nIter, info] = PenaltyAugmented(Q, mu0,x0, type, optimizer
     
     tau = 1e-6;
     epsilon = 1e-6;
-  
-    if strcmp(type, 'AugmentedLagrangian')
-        v_k = varargin{1};
-        c_1 = varargin{2};
-        info.vks = v_k;
-    end
     
     
     % Steepest descent line search strong WC
