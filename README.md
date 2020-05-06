@@ -26,7 +26,7 @@ previous assigment. For this project,
 
 2. SMO.m is the script of SMO algorithm
 
-3. The others are the utils function which might be used by the above two algoroithm.
+3. The 'xxx.p' files are the utils function which might be used by the above two algoroithm.
 
 There are several insightful referrence which help this project a lot
 
